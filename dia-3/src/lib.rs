@@ -2,7 +2,7 @@
 use soroban_sdk::{
     auth::{ContractContext, InvokerContractAuthEntry, SubContractInvocation},
     contract, contracterror, contractimpl, contracttype, panic_with_error, symbol_short, token,
-    Address, Env, IntoVal, Symbol, Vec, vec,
+    Address, Env, IntoVal, String, Symbol, Vec, vec,
 };
 
 #[contracttype]
@@ -11,6 +11,7 @@ pub enum DataKey {
     AssetInfo,
     Balance(Address),
     Whitelisted(Address),
+    SlotsUsed,
 }
 
 #[contracttype]
@@ -32,7 +33,10 @@ pub enum Error {
     InvalidAmount = 4,
     NotWhitelisted = 5,
     Paused = 6,
+    SlotsFull = 7,
 }
+
+const MAX_INVESTMENT_SLOTS: u32 = 2;
 
 #[contract]
 pub struct RwaLaunchpad;
@@ -75,10 +79,32 @@ impl RwaLaunchpad {
             .unwrap_or(false)
     }
 
-    // Paste your team's Day 2 variación logic here. Default: no extra gate.
+    fn slots_used(env: &Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&DataKey::SlotsUsed)
+            .unwrap_or(0)
+    }
+
+    // Variación: un solo cupo de inversión. La siguiente llamada a invest falla
+    // aunque el inversor siga en la whitelist, y publica el motivo.
     fn check_variation_gate(env: &Env, investor: &Address) -> Result<(), Error> {
-        let _ = (env, investor);
+        let _ = investor;
+        if Self::slots_used(env) >= MAX_INVESTMENT_SLOTS {
+            env.events().publish(
+                (symbol_short!("slots"),),
+                String::from_str(env, "Cupo de inversion lleno"),
+            );
+            return Err(Error::SlotsFull);
+        }
         Ok(())
+    }
+
+    fn consume_slot(env: &Env) {
+        let used = Self::slots_used(env);
+        env.storage()
+            .instance()
+            .set(&DataKey::SlotsUsed, &(used + 1));
     }
 
     fn internal_mint(env: &Env, to: &Address, amount: i128) {
@@ -204,6 +230,7 @@ impl RwaLaunchpad {
         );
 
         Self::internal_mint(&env, &investor, rwa_amount);
+        Self::consume_slot(&env);
         env.events().publish(
             (symbol_short!("invest"),),
             (investor.clone(), payment_amount, rwa_amount),

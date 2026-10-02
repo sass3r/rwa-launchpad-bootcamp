@@ -10,7 +10,7 @@ fn sample_asset(env: &Env) -> AssetInfo {
     AssetInfo {
         name: Symbol::new(env, "RWAToken"),
         total_supply: 1_000_000,
-        price_per_unit: 100,
+        price_per_unit: 5,
         payment_token: Address::generate(env),
         paused: false,
     }
@@ -69,7 +69,7 @@ fn test_transfer_insufficient_balance() {
 }
 
 #[test]
-#[should_panic(expected = "HostError: Error(Auth, InvalidAction)")]
+#[should_panic(expected = "HostError: Error(Contract, #7)")]
 fn test_set_whitelist_requires_admin() {
     let env = Env::default();
     let contract_id = env.register(RwaLaunchpad, ());

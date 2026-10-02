@@ -5,9 +5,9 @@
 set -euo pipefail
 
 NETWORK="${NETWORK:-testnet}"
-USER_KEY="${USER_KEY:-bob}"
-CONTRACT_ID="${CONTRACT_ID:-C...DEPLOYED_LAUNCHPAD_CONTRACT_ID...}"
-RECIPIENT="${RECIPIENT:-G...RECIPIENT_PUBLIC_KEY...}"
+USER_KEY="${USER_KEY:-ramon}"
+CONTRACT_ID="${CONTRACT_ID:-CDCLLV5QAE4LWA64WFEGUSJ3BOOLUFOC3XGOTVMMHORMYVF4YRKU3I62}"
+RECIPIENT="${RECIPIENT:-GCAYP3MHTSCX22CPEQ467RLFNW3KQM67QS3BYVLUUOZ65FAQX7JYG2E3}"
 
 echo "=== invest ==="
 stellar contract invoke \
@@ -17,7 +17,7 @@ stellar contract invoke \
   -- \
   invest \
   --investor "$(stellar keys address "$USER_KEY")" \
-  --payment_amount 500
+  --payment_amount 5
 
 echo "=== balance ==="
 stellar contract invoke \
@@ -37,4 +37,4 @@ stellar contract invoke \
   transfer \
   --from "$(stellar keys address "$USER_KEY")" \
   --to "$RECIPIENT" \
-  --amount 10
+  --amount 5

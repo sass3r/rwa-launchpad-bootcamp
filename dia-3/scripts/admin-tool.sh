@@ -5,11 +5,12 @@
 set -euo pipefail
 
 NETWORK="${NETWORK:-testnet}"
-ADMIN_KEY="${ADMIN_KEY:-alice}"
-CONTRACT_ID="${CONTRACT_ID:-C...DEPLOYED_LAUNCHPAD_CONTRACT_ID...}"
-PAYMENT_TOKEN="${PAYMENT_TOKEN:-C...INSTRUCTOR_PAYMENT_TOKEN_ID...}"
-INVESTOR="${INVESTOR:-G...INVESTOR_PUBLIC_KEY...}"
-TREASURY="${TREASURY:-G...TREASURY_PUBLIC_KEY...}"
+ADMIN_KEY="${ADMIN_KEY:-freighter}"
+USER_KEY="${USER_KEY:-ramon}"
+CONTRACT_ID="${CONTRACT_ID:-CDCLLV5QAE4LWA64WFEGUSJ3BOOLUFOC3XGOTVMMHORMYVF4YRKU3I62}"
+PAYMENT_TOKEN="${PAYMENT_TOKEN:-CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA}"
+INVESTOR="${INVESTOR:-GAGRCDSM2SJYOJHZIL3WV6MQUMLEPACZIVQ7BXO5T732GCU3TOU5QIRD}"
+TREASURY="${TREASURY:-GAVEI4XYSBSLWXFWKVNHGN7H3P5M4GMVVHFHC43NVI7MHCIZPEZJYIHV}"
 
 echo "=== initialize (run once after deploy) ==="
 stellar contract invoke \
@@ -19,7 +20,7 @@ stellar contract invoke \
   -- \
   initialize \
   --admin "$(stellar keys address "$ADMIN_KEY")" \
-  --asset '{"name":"RWAToken","total_supply":1000000,"price_per_unit":100,"payment_token":"'"$PAYMENT_TOKEN"'","paused":false}'
+  --asset '{"name":"SXR","total_supply":"1000000","price_per_unit":"5","payment_token":"'"$PAYMENT_TOKEN"'","paused":false}'
 
 echo "=== set_whitelist ==="
 stellar contract invoke \
@@ -41,7 +42,17 @@ stellar contract invoke \
   mint \
   --admin "$(stellar keys address "$ADMIN_KEY")" \
   --to "$INVESTOR" \
-  --amount 100
+  --amount 5
+
+echo "=== invest ==="
+stellar contract invoke \
+  --id "$CONTRACT_ID" \
+  --source "$USER_KEY" \
+  --network "$NETWORK" \
+  -- \
+  invest \
+  --investor "$(stellar keys address "$USER_KEY")" \
+  --payment_amount 5
 
 echo "=== withdraw collected payment tokens ==="
 stellar contract invoke \
@@ -52,7 +63,7 @@ stellar contract invoke \
   withdraw \
   --admin "$(stellar keys address "$ADMIN_KEY")" \
   --to "$TREASURY" \
-  --amount 500
+  --amount 5
 
 echo "=== pause ==="
 stellar contract invoke \

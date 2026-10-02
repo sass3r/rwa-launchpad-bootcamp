@@ -6,6 +6,7 @@ export enum ContractErrorCode {
   InvalidAmount = 4,
   NotWhitelisted = 5,
   Paused = 6,
+  SlotsFull = 7,
 }
 
 const MESSAGES: Record<ContractErrorCode, string> = {
@@ -21,6 +22,8 @@ const MESSAGES: Record<ContractErrorCode, string> = {
     "This wallet is not whitelisted. Ask an admin to approve your address before investing.",
   [ContractErrorCode.Paused]:
     "The launchpad is paused. Mint, transfer, and invest are disabled until an admin unpauses.",
+  [ContractErrorCode.SlotsFull]:
+    "Cupo de inversion lleno. Este launchpad solo acepta una inversion.",
 };
 
 export function messageForContractError(
@@ -53,12 +56,12 @@ export function parseContractErrorCode(error: unknown): number | null {
     const match = text.match(re);
     if (match?.[1]) {
       const code = Number(match[1]);
-      if (code >= 1 && code <= 6) return code;
+      if (code >= 1 && code <= 7) return code;
     }
   }
 
   // Sometimes the numeric code alone appears near "contract"
-  const loose = text.match(/contract[^0-9]{0,40}#?([1-6])\b/i);
+  const loose = text.match(/contract[^0-9]{0,40}#?([1-7])\b/i);
   if (loose?.[1]) return Number(loose[1]);
 
   return null;

@@ -81,3 +81,19 @@ fn test_invest_not_whitelisted() {
     env.mock_all_auths();
     client.invest(&investor, &500);
 }
+
+#[test]
+#[should_panic(expected = "Error(Contract, #7)")]
+fn test_invest_slots_full() {
+    let env = Env::default();
+    let (admin, payment_token, _contract_id, client) = setup_with_payment_token(&env);
+    let investor = Address::generate(&env);
+
+    let token_admin = StellarAssetClient::new(&env, &payment_token);
+    token_admin.mint(&investor, &1_000);
+
+    env.mock_all_auths();
+    client.set_whitelist(&admin, &investor, &true);
+    client.invest(&investor, &200);
+    client.invest(&investor, &200);
+}

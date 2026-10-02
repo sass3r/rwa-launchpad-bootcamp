@@ -1,7 +1,7 @@
 #![no_std]
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, panic_with_error, symbol_short, Address,
-    Env, Symbol,
+    Env, Symbol
 };
 
 #[contracttype]
@@ -31,6 +31,7 @@ pub enum Error {
     InvalidAmount = 4,
     NotWhitelisted = 5,
     Paused = 6,
+    NotAdmin = 7
 }
 
 #[contract]
@@ -123,11 +124,19 @@ impl RwaLaunchpad {
             .publish((symbol_short!("transfer"),), (from, to, amount));
     }
 
+    fn admin_address(env: &Env) -> Address {
+        env.storage().instance().get(&DataKey::Admin).unwrap()
+    }
+
     // INSTRUCTOR NOTE: Intentionally missing admin.require_auth() for the Day 2 bug-finding
     // exercise. Any address can whitelist any investor. Students should discover this via
     // test_set_whitelist_requires_admin and add the missing auth check.
     pub fn set_whitelist(env: Env, _admin: Address, investor: Address, approved: bool) {
         Self::require_initialized(&env);
+        _admin.require_auth();
+        if _admin != Self::admin_address(&env) {
+            panic_with_error!(&env, Error::NotAdmin);
+        }
         env.storage()
             .persistent()
             .set(&DataKey::Whitelisted(investor), &approved);
